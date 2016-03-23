@@ -61,6 +61,14 @@ int mian(int argc,char* argv[])
     error_handling("bind error");     
   }
   listen(socket_fd, 5);
+  bool serving = true;
+  while(serving)
+  {
+   struct sockaddr_in client_addr; 
+   socklen_t client_adr_len;
+   client_adr_len = sizeof(client_addr);
+   int client_fd = accept(socket_fd, (struct sockaddr *)&client_addr,&client_adr_len);  
+  }
 
 
 }
