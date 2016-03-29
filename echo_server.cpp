@@ -10,13 +10,16 @@
 #include <cstdio>
 #include <cstdlib>
 #include <unistd.h>
+#include <string.h>
 #include <sys/un.h>
 #include <cstring>
 #include <arpa/inet.h>
 
-void error_handling(const char* str)
+void error_handling(const char* message)
 {
-  printf(str);
+  fputs(message, stderr);
+  fputc('\n', stderr);
+  exit(1);
 }
 
 
@@ -33,18 +36,27 @@ bool  Serve( int client_socket  )
     msg = new char [length];
 
     read(client_socket, msg, length);
-    
+    std::cout << msg << std::endl;
+    if (!strcmp( msg, "quit" )) 
+    {
+      delete msg, msg = nullptr; 
+      return false;
+    }
+    else
+    {
+      delete [] msg, msg =nullptr;
+    }
   }
 
 }
 
 
-int mian(int argc,char* argv[])
+int main(int argc,char* argv[])
 {
   if(argc != 2)
   {
     printf("Usage: %s<port>\n",argv[0]);
-    exit(0);
+    exit(1);
   }
   char message[1024];
   int str_len,i;
@@ -67,8 +79,11 @@ int mian(int argc,char* argv[])
    struct sockaddr_in client_addr; 
    socklen_t client_adr_len;
    client_adr_len = sizeof(client_addr);
-   int client_fd = accept(socket_fd, (struct sockaddr *)&client_addr,&client_adr_len);  
+   int client_fd = accept(socket_fd, (struct sockaddr *)&client_addr,&client_adr_len); 
+    serving = Serve(client_fd);
+    close(client_fd);
   }
-
+  close(socket_fd);
+  return 0;
 
 }
