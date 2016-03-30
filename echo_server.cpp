@@ -5,24 +5,9 @@
 	> Created Time: 三  3/23 20:45:36 2016
  ************************************************************************/
 
-#include <iostream>
-#include <sys/socket.h>
-#include <cstdio>
-#include <cstdlib>
-#include <unistd.h>
-#include <string.h>
-#include <sys/un.h>
-#include <cstring>
-#include <arpa/inet.h>
+#include "head.h"
 
-void error_handling(const char* message)
-{
-  fputs(message, stderr);
-  fputc('\n', stderr);
-  exit(1);
-}
-
-
+/*
 bool  Serve( int client_socket  )
 {
   while(true)
@@ -49,7 +34,7 @@ bool  Serve( int client_socket  )
   }
 
 }
-
+*/
 
 int main(int argc,char* argv[])
 {
@@ -58,32 +43,55 @@ int main(int argc,char* argv[])
     printf("Usage: %s<port>\n",argv[0]);
     exit(1);
   }
-  char message[1024];
-  int str_len,i;
-
-  struct sockaddr_in serv_addr;
-  memset(&serv_addr, 0, sizeof(serv_addr));  
-  serv_addr.sin_family = AF_INET;
-  serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  serv_addr.sin_port = htonl(atoi(argv[1]));
-  int socket_fd = socket(PF_INET, SOCK_STREAM,0);
+  char message[BUF_SIZE];
+  int str_len;
+  int serv_sock,clnt_sock;
+  struct sockaddr_in serv_adr, clnt_adr;
+  
+  serv_sock = socket(PF_INET, SOCK_STREAM, 0);
+  if(serv_sock == -1)
+  {
+    error_handling("socket error");
+  }
+  std::cout<<"scokt"<<std::endl;
+  memset(&serv_adr, 0, sizeof(serv_adr));  
+  serv_adr.sin_family = AF_INET;
+  serv_adr.sin_addr.s_addr = htonl(INADDR_ANY);
+  serv_adr.sin_port = htonl(atoi(argv[1]));
  
-  if(bind(socket_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr))==-1)
+  if(bind(serv_sock, (struct sockaddr*)&serv_adr, sizeof(serv_adr))==-1)
   {
     error_handling("bind error");     
   }
-  listen(socket_fd, 5);
-  bool serving = true;
-  while(serving)
+  std::cout<<"bind"<<std::endl;
+  if (listen(serv_sock,5) == -1)
   {
-   struct sockaddr_in client_addr; 
-   socklen_t client_adr_len;
-   client_adr_len = sizeof(client_addr);
-   int client_fd = accept(socket_fd, (struct sockaddr *)&client_addr,&client_adr_len); 
-    serving = Serve(client_fd);
-    close(client_fd);
+    error_handling("listen error");
   }
-  close(socket_fd);
+  std::cout<<"listen"<<std::endl;
+  socklen_t clnt_adr_sz = sizeof(clnt_adr);
+
+  std::cout<<"begin"<<std::endl;
+  for(int i = 0; i < 5; ++i)
+  {
+    std::cout<<i<<std::endl;
+   clnt_sock = accept(serv_sock, (struct sockaddr *)&clnt_adr, &clnt_adr_sz); 
+    
+    if(clnt_sock == -1)
+    {
+      error_handling("accept error");
+    }
+    else
+    {
+      std::cout<<"connected client" << i+1 <<std::endl;
+    }
+    while((str_len = read(clnt_sock, message, BUF_SIZE))!=0)
+    {
+      write(clnt_sock, message, str_len);
+    }
+    close(clnt_sock);
+  }
+close(serv_sock);
   return 0;
 
 }
