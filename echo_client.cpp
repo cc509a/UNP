@@ -36,12 +36,12 @@ int main(int  argc, char* argv[])
   else
     puts("connecting ...");
   
-  while(true)
+  while(1)
   {
     fputs("Input message (q to exit):", stdout);
     fgets(message, BUF_SIZE, stdin);
 
-    if(strcmp(message, "q\n") || strcmp(message,"Q\n"))
+    if(!strcmp(message, "q\n") || !strcmp(message,"Q\n"))
     {
       break;
     }
